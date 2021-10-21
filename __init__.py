@@ -8,6 +8,6 @@ app.config["DEBUG"] = True
 def home():
     return "home"
 
+
 if __name__ == "__main__":
-        
     app.run(port=5000)
