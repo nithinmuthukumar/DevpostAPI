@@ -50,7 +50,10 @@ def get_hackathons(*, amount, options={},):
     url = "https://devpost.com/api/hackathons"
     params = {"order_by": 'order_by', 'location': "challenge_type[]", 'status': 'status[]', "length": 'length[]',
               "themes": 'themes[]', "organization": 'organization', "open_to": 'open_to[]', "search": 'search'}
-    params = {params[k]: v for k, v in options.items()}
+    if options:
+        params = {params[k]: v for k, v in options.items()}
+    else:
+        params = {}
     hackathons = []
     req_url = add_queries_to_url(url, params)
 
@@ -69,7 +72,7 @@ def get_hackathons(*, amount, options={},):
             amount = 0
 
         page += 1
-    return hackathons
+    return {"hackathons":hackathons}
 
 
 def get_profile_projects(profile_url):

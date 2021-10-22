@@ -11,12 +11,12 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/hackathons/', methods=['GET'])
 def hackathons():
     options = request.get_json()
-    return get_hackathons(amount=request.args.get('amount'), options=options)
+    return get_hackathons(amount=int(request.args.get('amount')), options=options)
 
 
 @app.route('/projects/', methods=['GET'])
 def projects():
-    return get_projects(amount=request.args.get('amount'))
+    return get_projects(amount=int(request.args.get('amount')))
 
 @app.route('/hackathons/projects/')
 def hackathon_projects():
