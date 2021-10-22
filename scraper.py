@@ -72,11 +72,11 @@ def get_hackathons(*, amount, options={},):
             amount = 0
 
         page += 1
-    return {"hackathons":hackathons}
+    return hackathons
 
 
-def get_profile_projects(profile_url):
-    page = requests.get(profile_url)
+def get_profile_projects(username):
+    page = requests.get("https://devpost.com/"+username)
     soup = BeautifulSoup(page.content, parser)
     return get_projects_from_page(soup)
 
@@ -170,9 +170,9 @@ def get_projects(*, amount):
 
 
 if __name__ == "__main__":
-    print([i['title'] for i in get_hackathons(amount=50, options={'search':"MasseyHacks"})])
+    #print([i['title'] for i in get_hackathons(amount=50, options={'search':"MasseyHacks"})])
     # print([i["name"] for i in dps.get_projects(amount=4)])
     # print(dps.get_hackathon_projects("https://hack-the-valley-v.devpost.com/"))
-    # print(dps.get_hackathon_projects("https://hack-the-valley-v.devpost.com/"))
+    print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/",None,None))
     #    print(dps.get_profile_projects('https://devpost.com/shutong5s'))
-    print(get_project_info('https://devpost.com/software/shopadvisr'))
+    #print(get_project_info('https://devpost.com/software/shopadvisr'))
