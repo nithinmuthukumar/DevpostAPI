@@ -35,19 +35,18 @@ def get_project_info(project_url):
         if h.find('ul'):
             hackathon['awards'] = ["".join(i.findAll(text=True, recursive=False)).strip() for i in h.findAll('li')]
         hackathons.append(hackathon)
-
     project = {
         'videoLink': soup.find('div', {'id': 'gallery'}).find('iframe')['src'],
         'hackathons': hackathons,
-        'members': ''
+        'members': get_info_from_user_photos(soup.find("section", {"id": "app-team"}))
 
     }
     return project
 
 
-def get_hackathons(*, amount, options={},):
+def get_hackathons(*, amount, options={}, ):
     page = 1
-    url = "https://devpost.com/api/hackathons"
+    url = baseurl + "api/hackathons"
     params = {"order_by": 'order_by', 'location': "challenge_type[]", 'status': 'status[]', "length": 'length[]',
               "themes": 'themes[]', "organization": 'organization', "open_to": 'open_to[]', "search": 'search'}
     if options:
@@ -76,7 +75,7 @@ def get_hackathons(*, amount, options={},):
 
 
 def get_profile_projects(username):
-    page = requests.get("https://devpost.com/"+username)
+    page = requests.get(baseurl + username)
     soup = BeautifulSoup(page.content, parser)
     return get_projects_from_page(soup)
 
@@ -94,14 +93,30 @@ def get_projects_from_page(soup):
             'tagLine': project.find('p', {"class": "tagline"}).get_text().strip(),
             'likes': int(project.find('span', {"data-count": "like"}).get_text().strip()),
             'commentCount': int(project.find('span', {"data-count": "comment"}).get_text().strip()),
-            'members': [{"name": s["alt"], "username": s["title"], "imageUrl": s["src"]}
-                        for s in
-                        project.find_all("img", {"class": "user-photo"}, alt=True, src=True, title=True)],
+            'members': get_info_from_user_photos(project),
             'isWinner': bool(project.find("aside", {"class": "entry-badge"}))
 
         }
         projects.append(project)
     return projects
+
+
+def get_info_from_user_photos(soup):
+    users = []
+    for s in soup.find_all("img", {"class": "user-photo"}, alt=True, src=True, title=True):
+
+        if 'href' in s.parent.attrs:
+            profile_url = s.parent['href']
+        elif 'data-url' in s.parent.attrs:
+            profile_url = s.parent['data-url']
+        else:
+            profile_url = 'https://devpost.com/software/ghs-global-healthcare-system'
+
+
+        user = {"name": s["alt"], "username": urllib.parse.urlparse(profile_url).path[1:], "imageUrl": s["src"], "profileUrl": profile_url}
+
+        users.append(user)
+    return users
 
 
 def get_hackathon_projects(hackathon_url, category=None, sort_by=None):
@@ -126,9 +141,9 @@ def get_hackathon_projects(hackathon_url, category=None, sort_by=None):
 
     while True:
         page = requests.get(projects_url)
+
         soup = BeautifulSoup(page.content, parser)
         projects.extend(get_projects_from_page(soup))
-
         next_button = soup.find("li", {"class": "next_page"})
 
         if not next_button or "unavailable" in next_button['class']:
@@ -170,9 +185,9 @@ def get_projects(*, amount):
 
 
 if __name__ == "__main__":
-    #print([i['title'] for i in get_hackathons(amount=50, options={'search':"MasseyHacks"})])
+    # print([i['title'] for i in get_hackathons(amount=50, options={'search':"MasseyHacks"})])
     # print([i["name"] for i in dps.get_projects(amount=4)])
     # print(dps.get_hackathon_projects("https://hack-the-valley-v.devpost.com/"))
-    print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/",None,None))
+    print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/", None, None))
     #    print(dps.get_profile_projects('https://devpost.com/shutong5s'))
-    #print(get_project_info('https://devpost.com/software/shopadvisr'))
+    print(get_project_info('https://devpost.com/software/shopadvisr'))
