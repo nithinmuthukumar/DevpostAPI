@@ -1,3 +1,4 @@
+import pprint
 import re
 
 import requests
@@ -9,6 +10,7 @@ import urllib.parse
 # https://devpost.com/api/hackathons?challenge_type[]=in-person
 parser = "html.parser"
 baseurl = "https://devpost.com/"
+
 param_indicators = ["?", "&"]
 
 
@@ -62,12 +64,35 @@ def get_hackathons(*, amount, options={}, ):
     while amount > 0:
         data = requests.get(req_url + param_indicators[len(params)] + f"{page=}").json()["hackathons"]
 
-        print(req_url + f"&{page=}")
-        if amount >= len(data):
-            amount -= len(data)
-            hackathons.extend(data)
+        hackathons_in_data = []
+        for hackathon in data:
+            currency = hackathon['prize_amount'][0]
+            prize_amount = re.findall(r'>(.+?)<', hackathon['prize_amount'])[0] #removes html tags around prize
+
+            hackathons_in_data.append({
+                "name": hackathon['title'],
+                "location": hackathon['displayed_location']['location'],
+                "organizationName": hackathon['organization_name'],
+                "prizeAmount": currency + prize_amount,
+                "registrationsCount": hackathon['registrations_count'],
+                "submissionPeriod": hackathon['submission_period_dates'],
+                "themes": [theme['name'] for theme in hackathon['themes']],
+                "hackathonUrl": hackathon['url'],
+                "image": "https:"+hackathon['thumbnail_url'],
+                "winnersAnnounced": hackathon['winners_announced'],
+                "openTo": hackathon['open_state'],
+                "submissionGalleryUrl": hackathon['submission_gallery_url'],
+                "startSubmissionUrl": hackathon['start_a_submission_url']
+
+
+            })
+
+
+        if amount >= len(hackathons_in_data):
+            amount -= len(hackathons_in_data)
+            hackathons.extend(hackathons_in_data)
         else:
-            hackathons.extend(data[:amount])
+            hackathons.extend(hackathons_in_data[:amount])
             amount = 0
 
         page += 1
@@ -185,9 +210,9 @@ def get_projects(*, amount):
 
 
 if __name__ == "__main__":
-    # print([i['title'] for i in get_hackathons(amount=50, options={'search':"MasseyHacks"})])
+    pprint.pprint([i for i in get_hackathons(amount=6, options={'search':"MasseyHacks"})])
     # print([i["name"] for i in dps.get_projects(amount=4)])
     # print(dps.get_hackathon_projects("https://hack-the-valley-v.devpost.com/"))
-    print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/", None, None))
+    # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/", None, None))
     #    print(dps.get_profile_projects('https://devpost.com/shutong5s'))
-    print(get_project_info('https://devpost.com/software/shopadvisr'))
+    # print(get_project_info('https://devpost.com/software/shopadvisr'))
