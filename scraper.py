@@ -26,8 +26,12 @@ def add_queries_to_url(url, params):
 def get_project_info(project_url):
     page = requests.get(project_url)
     soup = BeautifulSoup(page.content, parser)
+
     hackathon_soup = soup.find("div", {"id": 'submissions'}).find('ul', {"class": "software-list-with-thumbnail"})
     hackathons = []
+    likes = soup.find('a', {'class': 'like-button'}).find('span', {'class': 'side-count'})
+    comments = soup.find('a', {'class': 'comment-button'}).find('span', {'class': 'side-count'})
+
     for h in hackathon_soup.findChildren('li', recursive=False):
         hackathon = dict()
         hackathon['name'] = h.find('p').get_text().strip()
@@ -40,7 +44,15 @@ def get_project_info(project_url):
     project = {
         'videoLink': soup.find('div', {'id': 'gallery'}).find('iframe')['src'],
         'hackathons': hackathons,
-        'members': get_info_from_user_photos(soup.find("section", {"id": "app-team"}))
+        'members': get_info_from_user_photos(soup.find("section", {"id": "app-team"})),
+        'details': "\n".join(t.get_text().strip('\n') for t in
+                             soup.find('div', {'id': 'app-details-left'})
+                             .findChildren('div', recursive=False)[1].findAll(["p", "h2"])),
+
+        "external_links": [link['href'] for link in soup.find('ul', {'data-role': 'software-urls'}).findAll("a")],
+        "built_with": [i.get_text() for i in soup.find('div', {'id': 'built-with'}).findAll('li')],
+        "likes": int(likes.get_text()) if likes else 0,
+        "comments": int(comments.get_text()) if comments else 0
 
     }
     return project
@@ -67,7 +79,7 @@ def get_hackathons(*, amount, options={}, ):
         hackathons_in_data = []
         for hackathon in data:
             currency = hackathon['prize_amount'][0]
-            prize_amount = re.findall(r'>(.+?)<', hackathon['prize_amount'])[0] #removes html tags around prize
+            prize_amount = re.findall(r'>(.+?)<', hackathon['prize_amount'])[0]  # removes html tags around prize
 
             hackathons_in_data.append({
                 "name": hackathon['title'],
@@ -78,15 +90,13 @@ def get_hackathons(*, amount, options={}, ):
                 "submissionPeriod": hackathon['submission_period_dates'],
                 "themes": [theme['name'] for theme in hackathon['themes']],
                 "hackathonUrl": hackathon['url'],
-                "image": "https:"+hackathon['thumbnail_url'],
+                "image": "https:" + hackathon['thumbnail_url'],
                 "winnersAnnounced": hackathon['winners_announced'],
                 "openTo": hackathon['open_state'],
                 "submissionGalleryUrl": hackathon['submission_gallery_url'],
                 "startSubmissionUrl": hackathon['start_a_submission_url']
 
-
             })
-
 
         if amount >= len(hackathons_in_data):
             amount -= len(hackathons_in_data)
@@ -137,8 +147,8 @@ def get_info_from_user_photos(soup):
         else:
             profile_url = 'https://devpost.com/software/ghs-global-healthcare-system'
 
-
-        user = {"name": s["alt"], "username": urllib.parse.urlparse(profile_url).path[1:], "imageUrl": s["src"], "profileUrl": profile_url}
+        user = {"name": s["alt"], "username": urllib.parse.urlparse(profile_url).path[1:], "imageUrl": s["src"],
+                "profileUrl": profile_url}
 
         users.append(user)
     return users
@@ -210,9 +220,9 @@ def get_projects(*, amount):
 
 
 if __name__ == "__main__":
-    pprint.pprint([i for i in get_hackathons(amount=6, options={'search':"MasseyHacks"})])
-    # print([i["name"] for i in dps.get_projects(amount=4)])
-    # print(dps.get_hackathon_projects("https://hack-the-valley-v.devpost.com/"))
+    # pprint.pprint([i for i in get_hackathons(amount=6, options={'search':"MasseyHacks"})])
+    # print([i["name"] for i in get_projects(amount=4)])
+    # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/"))
     # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/", None, None))
-    #    print(dps.get_profile_projects('https://devpost.com/shutong5s'))
-    # print(get_project_info('https://devpost.com/software/shopadvisr'))
+    # print(get_profile_projects('https://devpost.com/shutong5s'))
+    pprint.pprint(get_project_info('https://devpost.com/software/shopadvisr'))
