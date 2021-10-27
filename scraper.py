@@ -22,7 +22,8 @@ def add_queries_to_url(url, params):
     req_url = urllib.parse.urlunparse(url_parts)
     return req_url
 
-
+def get_hackathon_info(hackathon_url):
+    return []
 def get_project_info(project_url):
     page = requests.get(project_url)
     soup = BeautifulSoup(page.content, parser)
@@ -115,6 +116,40 @@ def get_profile_projects(username):
     return get_projects_from_page(soup)
 
 
+def get_profile(username):
+    page = requests.get(baseurl + username)
+    soup = BeautifulSoup(page.content, parser)
+
+    user_aliases = soup.find("h1", {"id": "portfolio-user-name"}).get_text()
+    name, username = [re.sub("[()]", "", i.strip()) for i in user_aliases.strip().split('\n')]
+    links = soup.find("ul", {'id': "portfolio-user-links"})
+    # location is the first value in the list
+    location = links.find("li").get_text().strip()
+    external_links = [a['href'] for a in links.findAll("a")]
+
+    projects, hackathons, achievements, followers, following, likes = [i.get_text() for i in soup.find("nav", {
+        "id": "portfolio-navigation"}).findAll("div", {"class": "totals"})]
+
+    profile = {
+
+        "imageUrl": soup.find("div", {"id": "portfolio-user-photo"}).find("img", {"class": "user-photo"})['src'],
+        "name": name,
+        "username": username,
+        "location": location,
+        "externalLinks": external_links,
+        "stats": {
+            "projects":projects,
+            "hackathons":hackathons,
+            "achievements":achievements,
+            "followers":followers,
+            "following":following,
+            "likes":likes
+        }
+
+    }
+    return profile
+
+
 def get_projects_from_page(soup):
     projects = []
 
@@ -154,7 +189,7 @@ def get_info_from_user_photos(soup):
     return users
 
 
-def get_hackathon_projects(hackathon_url, category=None, sort_by=None):
+def get_hackathon_submissions(hackathon_url, category=None, sort_by=None):
     if not sort_by and not category:
         projects_url = hackathon_url + "project-gallery"
     else:
@@ -225,4 +260,7 @@ if __name__ == "__main__":
     # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/"))
     # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/", None, None))
     # print(get_profile_projects('https://devpost.com/shutong5s'))
-    pprint.pprint(get_project_info('https://devpost.com/software/shopadvisr'))
+    # pprint.pprint(get_project_info('https://devpost.com/software/shopadvisr'))
+    print(get_profile("pinosaur"))
+    print(get_hackathon_categories("https://hack-the-valley-v.devpost.com/"))
+
