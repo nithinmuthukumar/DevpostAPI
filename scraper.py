@@ -13,7 +13,8 @@ baseurl = "https://devpost.com/"
 
 param_indicators = ["?", "&"]
 
-
+# TODO: LOOK AT META TAGS
+# TODO: Convert to graphql
 def add_queries_to_url(url, params):
     url_parts = list(urllib.parse.urlparse(url))
     query = dict(urllib.parse.parse_qsl(url_parts[4]))
@@ -27,6 +28,7 @@ def get_hackathon_info(hackathon_url):
 def get_project_info(project_url):
     page = requests.get(project_url)
     soup = BeautifulSoup(page.content, parser)
+    pprint.pprint(soup.findAll("meta"))
     name_tag = soup.find("h1",{"id":"app-title"})
     tag_line = name_tag.parent.find("p").get_text()
     hackathon_soup = soup.find("div", {"id": 'submissions'}).find('ul', {"class": "software-list-with-thumbnail"})
@@ -124,6 +126,7 @@ def get_profile_projects(username):
 def get_profile(username):
     page = requests.get(baseurl + username)
     soup = BeautifulSoup(page.content, parser)
+
 
     user_aliases = soup.find("h1", {"id": "portfolio-user-name"}).get_text()
     name, username = [re.sub("[()]", "", i.strip()) for i in user_aliases.strip().split('\n')]
