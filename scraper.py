@@ -50,8 +50,8 @@ def get_project_info(project_url):
                              soup.find('div', {'id': 'app-details-left'})
                              .findChildren('div', recursive=False)[1].findAll(["p", "h2"])),
 
-        "external_links": [link['href'] for link in soup.find('ul', {'data-role': 'software-urls'}).findAll("a")],
-        "built_with": [i.get_text() for i in soup.find('div', {'id': 'built-with'}).findAll('li')],
+        "externalLinks": [link['href'] for link in soup.find('ul', {'data-role': 'software-urls'}).findAll("a")],
+        "builtWith": [i.get_text() for i in soup.find('div', {'id': 'built-with'}).findAll('li')],
         "likes": int(likes.get_text()) if likes else 0,
         "comments": int(comments.get_text()) if comments else 0
 
@@ -144,7 +144,8 @@ def get_profile(username):
             "followers":followers,
             "following":following,
             "likes":likes
-        }
+        },
+        "profile_url":baseurl+username
 
     }
     return profile
