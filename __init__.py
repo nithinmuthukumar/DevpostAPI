@@ -19,14 +19,14 @@ def projects():
     return get_projects(amount=int(request.args.get('amount')))
 
 
-@app.route('/hackathons/submissions/', methods=['GET', 'POST'])
+@app.route('/hackathon/submissions/', methods=['GET', 'POST'])
 def hackathon_projects():
     data = request.get_json()
     return {"projects": get_hackathon_submissions(data['hackathonUrl'], data.pop('category', None),
                                                   data.pop('sortBy', None))}
 
 
-@app.route('/hackathons/categories/', methods=['GET', 'POST'])
+@app.route('/hackathon/categories/', methods=['GET', 'POST'])
 def hackathon_categories():
     data = request.get_json()
     return {'categories': [i['name'] for i in get_hackathon_categories(data['hackathonUrl'])]}

@@ -62,8 +62,8 @@ def get_project_info(project_url):
 def get_hackathons(*, amount, options={}, ):
     page = 1
     url = baseurl + "api/hackathons"
-    params = {"order_by": 'order_by', 'location': "challenge_type[]", 'status': 'status[]', "length": 'length[]',
-              "themes": 'themes[]', "organization": 'organization', "open_to": 'open_to[]', "search": 'search'}
+    params = {"orderBy": 'order_by', 'location': "challenge_type[]", 'status': 'status[]', "length": 'length[]',
+              "themes": 'themes[]', "organization": 'organization', "openTo": 'open_to[]', "search": 'search'}
     if options:
         params = {params[k]: v for k, v in options.items()}
     else:
