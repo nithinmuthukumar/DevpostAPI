@@ -27,7 +27,8 @@ def get_hackathon_info(hackathon_url):
 def get_project_info(project_url):
     page = requests.get(project_url)
     soup = BeautifulSoup(page.content, parser)
-
+    name_tag = soup.find("h1",{"id":"app-title"})
+    tag_line = name_tag.parent.find("p").get_text()
     hackathon_soup = soup.find("div", {"id": 'submissions'}).find('ul', {"class": "software-list-with-thumbnail"})
     hackathons = []
     likes = soup.find('a', {'class': 'like-button'}).find('span', {'class': 'side-count'})
@@ -43,6 +44,8 @@ def get_project_info(project_url):
             hackathon['awards'] = ["".join(i.findAll(text=True, recursive=False)).strip() for i in h.findAll('li')]
         hackathons.append(hackathon)
     project = {
+        "name":name_tag.get_text(),
+        "tagLine":tag_line.strip(),
         'videoLink': soup.find('div', {'id': 'gallery'}).find('iframe')['src'],
         'hackathons': hackathons,
         'members': get_info_from_user_photos(soup.find("section", {"id": "app-team"})),
@@ -53,7 +56,9 @@ def get_project_info(project_url):
         "externalLinks": [link['href'] for link in soup.find('ul', {'data-role': 'software-urls'}).findAll("a")],
         "builtWith": [i.get_text() for i in soup.find('div', {'id': 'built-with'}).findAll('li')],
         "likes": int(likes.get_text()) if likes else 0,
-        "comments": int(comments.get_text()) if comments else 0
+        "comments": int(comments.get_text()) if comments else 0,
+        "projectUrl":project_url,
+
 
     }
     return project
@@ -261,7 +266,7 @@ if __name__ == "__main__":
     # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/"))
     # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/", None, None))
     # print(get_profile_projects('https://devpost.com/shutong5s'))
-    # pprint.pprint(get_project_info('https://devpost.com/software/shopadvisr'))
-    print(get_profile("pinosaur"))
-    print(get_hackathon_categories("https://hack-the-valley-v.devpost.com/"))
+    pprint.pprint(get_project_info('https://devpost.com/software/shopadvisr'))
+    # print(get_profile("pinosaur"))
+    # print(get_hackathon_categories("https://hack-the-valley-v.devpost.com/"))
 
