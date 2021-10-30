@@ -98,7 +98,7 @@ def get_hackathons(*, amount, options={}, ):
                 "submissionPeriod": hackathon['submission_period_dates'],
                 "themes": [theme['name'] for theme in hackathon['themes']],
                 "hackathonUrl": hackathon['url'],
-                "image": "https:" + hackathon['thumbnail_url'],
+                "imageUrl": "https:" + hackathon['thumbnail_url'],
                 "winnersAnnounced": hackathon['winners_announced'],
                 "openTo": hackathon['open_state'],
                 "submissionGalleryUrl": hackathon['submission_gallery_url'],
@@ -166,7 +166,7 @@ def get_projects_from_page(soup):
     for project in project_divs:
         image = project.find("img", {"class": "software_thumbnail_image"}, src=True, alt=True)
         project = {
-            "url": project.find("a", {"class": 'link-to-software'}, href=True)['href'],
+            "projectUrl": project.find("a", {"class": 'link-to-software'}, href=True)['href'],
             "imageUrl": image['src'],
             'name': image['alt'],
             'tagLine': project.find('p', {"class": "tagline"}).get_text().strip(),
@@ -174,6 +174,7 @@ def get_projects_from_page(soup):
             'commentCount': int(project.find('span', {"data-count": "comment"}).get_text().strip()),
             'members': get_info_from_user_photos(project),
             'isWinner': bool(project.find("aside", {"class": "entry-badge"}))
+
 
         }
         projects.append(project)

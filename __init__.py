@@ -1,59 +1,85 @@
-from flask import Flask
-from flask import request
+from ariadne import QueryType, graphql_sync, make_executable_schema, load_schema_from_path, ObjectType
+from ariadne.constants import PLAYGROUND_HTML
+from flask import Flask, request, jsonify
 from scraper import *
-from flask_cors import CORS, cross_origin
+
+type_defs = load_schema_from_path('schema.graphql')
+
+query = QueryType()
+
+
+@query.field("hackathons")
+def resolve_hackathons(obj, info, amount=5):
+    return get_hackathons(amount=amount)
+
+
+@query.field("projects")
+def resolve_projects(obj, info, amount=5):
+    return get_projects(amount=amount)
+
+
+@query.field("categories")
+def resolve_categories(obj, info, hackathonUrl=None):
+    return get_hackathon_categories(hackathonUrl)
+
+
+@query.field("profileProjects")
+def resolve_profileProjects(obj, info, username=None):
+    return get_profile_projects(username)
+
+
+@query.field("submissions")
+def resolve_submissions(obj, info, hackathonUrl=None):
+    return get_hackathon_submissions(hackathonUrl)
+
+
+
+@query.field("profile")
+def resolve_profile(obj, info, username=None):
+    return get_profile(username)
+
+
+@query.field("hackathon")
+def resolve_hackathon(obj, info, hackathonUrl=None):
+    return get_hackathon_info(hackathonUrl)
+
+
+@query.field("project")
+def resolve_project(obj, info, projectUrl=None):
+    get_project_info(projectUrl)
+
+
+schema = make_executable_schema(type_defs, query)
 
 app = Flask(__name__)
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
-
-@app.route('/hackathons/', methods=['GET', 'POST'])
-def hackathons():
-    options = request.get_json()
-    amount = options.pop('amount')
-    return {"hackathons": get_hackathons(amount=int(request.args.get('amount')), options=options)}
 
 
-@app.route('/projects/', methods=['GET', 'POST'])
-def projects():
-    return get_projects(amount=int(request.args.get('amount')))
+@app.route("/graphql", methods=["GET"])
+def graphql_playground():
+    # On GET request serve GraphQL Playground
+    # You don't need to provide Playground if you don't want to
+    # but keep on mind this will not prohibit clients from
+    # exploring your API using desktop GraphQL Playground app.
+    return PLAYGROUND_HTML, 200
 
 
-@app.route('/hackathon/submissions/', methods=['GET', 'POST'])
-def hackathon_projects():
+@app.route("/graphql", methods=["POST"])
+def graphql_server():
+    # GraphQL queries are always sent as POST
     data = request.get_json()
-    return {"projects": get_hackathon_submissions(data['hackathonUrl'], data.pop('category', None),
-                                                  data.pop('sortBy', None))}
 
+    # Note: Passing the request to the context is optional.
+    # In Flask, the current request is always accessible as flask.request
+    success, result = graphql_sync(
+        schema,
+        data,
+        context_value=request,
+        debug=app.debug
+    )
 
-@app.route('/hackathon/categories/', methods=['GET', 'POST'])
-def hackathon_categories():
-    data = request.get_json()
-    return {'categories': [i['name'] for i in get_hackathon_categories(data['hackathonUrl'])]}
-
-
-@app.route('/profile/projects/', methods=['GET', 'POST'])
-def profile_projects():
-    data = request.get_json()
-    return {"projects": get_profile_projects(data['username'])}
-
-
-@app.route('/profile/', methods=['GET', 'POST'])
-def profile():
-    data = request.get_json()
-    return get_profile(data['username'])
-
-# TODO: finish get_hackathon_info
-@app.route('/hackathon/', methods=['GET','POST'])
-def hackathon():
-    data = request.get_json()
-    return get_hackathon_info(data['hackathonUrl'])
-
-@app.route('/project/', methods=['GET','POST'])
-def project():
-    data = request.get_json()
-    return get_project_info(data['projectUrl'])
+    status_code = 200 if success else 400
+    return jsonify(result), status_code
 
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(debug=True)

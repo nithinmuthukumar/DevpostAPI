@@ -1,0 +1,67 @@
+schema {
+    query: Query
+}
+type Query {
+    #projects: [Project!]!
+    hackathons(amount:Int): [Hackathon!]!
+    projects(amount:Int!): [Project!]!
+    submissions(hackathonUrl: String!): [Project!]!
+    categories(hackathonUrl: String!): [String!]!
+    profileProjects(username: String!): [Project]!
+    profile(username: String!): Member
+    hackathon(hackathonUrl:String!): Hackathon
+    project(projectUrl:String!): Project!
+
+}
+type Hackathon {
+    name: String!
+    location: String!
+    organizationName: String!
+    prizeAmount: String!
+    registrationsCount: Int!
+    submissionPeriod: String!
+    themes: [String!]!
+    hackathonUrl: String!
+    imageUrl: String!
+    winnersAnnounced: Boolean!
+    openTo: String!
+    submissionGalleryUrl: String!
+    startSubmissionUrl: String!
+
+}
+type MemberStats {
+    achievements: Int!
+    followers: Int!
+    following: Int!
+    hackathons: Int!
+    likes: Int!
+    projects:Int!
+}
+type Member {
+    name: String!
+    username: String!
+    profileUrl: String!
+    location: String!
+    externalLinks: [String!]!
+    stats: MemberStats!
+}
+type Awards {
+    name: String!
+    awards: [String!]!
+    hackathonUrl: String!
+    imageUrl: String!
+}
+type Project {
+    name: String!
+    tagLine: String!
+    likes: Int!
+    commentCount: Int!
+    projectUrl: String!
+    imageUrl: String!
+    isWinner: Boolean!
+    members: [Member!]!
+    videoLink: String!
+    hackathons : [Awards!]!
+    details: String!
+    builtWith: [String!]!
+}
