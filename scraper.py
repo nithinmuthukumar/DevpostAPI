@@ -155,7 +155,7 @@ def get_profile(username):
             "following": following,
             "likes": likes
         },
-        "profile_url": baseurl + username
+        "profileUrl": baseurl + username
 
     }
     return profile
