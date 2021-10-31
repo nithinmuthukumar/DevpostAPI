@@ -1,4 +1,4 @@
-from ariadne import QueryType, graphql_sync, make_executable_schema, load_schema_from_path, ObjectType
+from ariadne import load_schema_from_path, make_executable_schema, constants, QueryType, graphql_sync
 from ariadne.constants import PLAYGROUND_HTML
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -8,19 +8,20 @@ from scraper import *
 type_defs = load_schema_from_path('schema.graphql')
 
 query = QueryType()
-schema = make_executable_schema(type_defs, query)
 
-app = Flask(__name__)
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+
+
+
 
 @query.field("hackathons")
-def resolve_hackathons(obj, info, amount=5):
-    return get_hackathons(amount=amount)
+def resolve_hackathons(obj, info, amount, orderBy=None, location=None, status=None, length=None,
+                       themes=None, organization=None, openTo=None, search=None):
+    return get_hackathons(orderBy, location, status, length, themes, organization, openTo, search, amount=amount)
 
 
 @query.field("projects")
 def resolve_projects(obj, info, amount=5):
+
     return get_projects(amount=amount)
 
 
@@ -35,9 +36,9 @@ def resolve_profileProjects(obj, info, username=None):
 
 
 @query.field("submissions")
-def resolve_submissions(obj, info, hackathonUrl=None):
-    return get_hackathon_submissions(hackathonUrl)
-
+def resolve_submissions(obj, info, hackathonUrl=None,category=None,sortBy=None):
+    print(hackathonUrl)
+    return get_hackathon_submissions(hackathonUrl,category,sortBy)
 
 
 @query.field("profile")
@@ -52,11 +53,12 @@ def resolve_hackathon(obj, info, hackathonUrl=None):
 
 @query.field("project")
 def resolve_project(obj, info, projectUrl=None):
-    get_project_info(projectUrl)
+    return get_project_info(projectUrl)
 
-
-
-
+schema = make_executable_schema(type_defs, query)
+app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route("/graphql", methods=["GET"])
 def graphql_playground():
@@ -80,6 +82,7 @@ def graphql_server():
         context_value=request,
         debug=app.debug
     )
+    print(result)
 
     status_code = 200 if success else 400
     return jsonify(result), status_code

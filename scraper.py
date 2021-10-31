@@ -13,6 +13,7 @@ baseurl = "https://devpost.com/"
 
 param_indicators = ["?", "&"]
 
+
 # TODO: LOOK AT META TAGS
 # TODO: Convert to graphql
 def add_queries_to_url(url, params):
@@ -23,14 +24,16 @@ def add_queries_to_url(url, params):
     req_url = urllib.parse.urlunparse(url_parts)
     return req_url
 
+
 def get_hackathon_info(hackathon_url):
-    return []
+
+    return get_hackathons(amount=1,search=hackathon_url.split(".")[0].split("/")[-1])[0]
+
+
 def get_project_info(project_url):
     page = requests.get(project_url)
     soup = BeautifulSoup(page.content, parser)
     pprint.pprint(soup.findAll("meta"))
-    name_tag = soup.find("h1",{"id":"app-title"})
-    tag_line = name_tag.parent.find("p").get_text()
     hackathon_soup = soup.find("div", {"id": 'submissions'}).find('ul', {"class": "software-list-with-thumbnail"})
     hackathons = []
     likes = soup.find('a', {'class': 'like-button'}).find('span', {'class': 'side-count'})
@@ -46,9 +49,9 @@ def get_project_info(project_url):
             hackathon['awards'] = ["".join(i.findAll(text=True, recursive=False)).strip() for i in h.findAll('li')]
         hackathons.append(hackathon)
     project = {
-        "name":name_tag.get_text(),
-        "tagLine":tag_line.strip(),
-        'videoLink': soup.find('div', {'id': 'gallery'}).find('iframe')['src'],
+        "name": soup.find("meta", {"property": "og:title"})["content"],
+        "tagLine": soup.find("meta", {"property": "og:description"})["content"],
+        'videoLink': soup.find('div', {'id': 'gallery'}).find('iframe')['src'].split("?")[0],
         'hackathons': hackathons,
         'members': get_info_from_user_photos(soup.find("section", {"id": "app-team"})),
         'details': "\n".join(t.get_text().strip('\n') for t in
@@ -59,22 +62,22 @@ def get_project_info(project_url):
         "builtWith": [i.get_text() for i in soup.find('div', {'id': 'built-with'}).findAll('li')],
         "likes": int(likes.get_text()) if likes else 0,
         "comments": int(comments.get_text()) if comments else 0,
-        "projectUrl":project_url,
+        "projectUrl": project_url,
 
+        "imageUrl": soup.find("meta", {"property": "og:image"})["content"]
 
     }
     return project
 
 
-def get_hackathons(*, amount, options={}, ):
+def get_hackathons( order_by=None, location=None, status=None, length=None, themes=None, organization=None,
+                   open_to=None, search=None,*,amount):
     page = 1
     url = baseurl + "api/hackathons"
-    params = {"orderBy": 'order_by', 'location': "challenge_type[]", 'status': 'status[]', "length": 'length[]',
-              "themes": 'themes[]', "organization": 'organization', "openTo": 'open_to[]', "search": 'search'}
-    if options:
-        params = {params[k]: v for k, v in options.items()}
-    else:
-        params = {}
+    params = { 'order_by':order_by, "challenge_type[]":location, 'status[]':status, 'length[]':length,
+              'themes[]':themes, "organization": organization,"open_to[]": open_to, "search": search}
+    params = {k:v for k,v in params.items() if v}
+
     hackathons = []
     req_url = add_queries_to_url(url, params)
 
@@ -127,7 +130,6 @@ def get_profile(username):
     page = requests.get(baseurl + username)
     soup = BeautifulSoup(page.content, parser)
 
-
     user_aliases = soup.find("h1", {"id": "portfolio-user-name"}).get_text()
     name, username = [re.sub("[()]", "", i.strip()) for i in user_aliases.strip().split('\n')]
     links = soup.find("ul", {'id': "portfolio-user-links"})
@@ -146,14 +148,14 @@ def get_profile(username):
         "location": location,
         "externalLinks": external_links,
         "stats": {
-            "projects":projects,
-            "hackathons":hackathons,
-            "achievements":achievements,
-            "followers":followers,
-            "following":following,
-            "likes":likes
+            "projects": projects,
+            "hackathons": hackathons,
+            "achievements": achievements,
+            "followers": followers,
+            "following": following,
+            "likes": likes
         },
-        "profile_url":baseurl+username
+        "profile_url": baseurl + username
 
     }
     return profile
@@ -174,7 +176,6 @@ def get_projects_from_page(soup):
             'commentCount': int(project.find('span', {"data-count": "comment"}).get_text().strip()),
             'members': get_info_from_user_photos(project),
             'isWinner': bool(project.find("aside", {"class": "entry-badge"}))
-
 
         }
         projects.append(project)
@@ -270,7 +271,7 @@ if __name__ == "__main__":
     # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/"))
     # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/", None, None))
     # print(get_profile_projects('https://devpost.com/shutong5s'))
-    pprint.pprint(get_project_info('https://devpost.com/software/shopadvisr'))
+    # pprint.pprint(get_project_info('https://devpost.com/software/shopadvisr'))
     # print(get_profile("pinosaur"))
+    print(get_hackathon_info("https://hack-the-valley-v.devpost.com/?ref_content=default&ref_feature=challenge&ref_medium=portfolio"))
     # print(get_hackathon_categories("https://hack-the-valley-v.devpost.com/"))
-

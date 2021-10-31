@@ -3,9 +3,19 @@ schema {
 }
 type Query {
     #projects: [Project!]!
-    hackathons(amount:Int): [Hackathon!]!
+    hackathons(
+        amount:Int!,
+        orderBy: String,
+        location: String,
+        status: String,
+        length: String,
+        themes: [String],
+        organization: String,
+        openTo: String,
+        search: String
+    ): [Hackathon!]!
     projects(amount:Int!): [Project!]!
-    submissions(hackathonUrl: String!): [Project!]!
+    submissions(hackathonUrl: String!,category:String,sortBy:String): [Project!]!
     categories(hackathonUrl: String!): [String!]!
     profileProjects(username: String!): [Project]!
     profile(username: String!): Member
@@ -13,6 +23,7 @@ type Query {
     project(projectUrl:String!): Project!
 
 }
+
 type Hackathon {
     name: String!
     location: String!
