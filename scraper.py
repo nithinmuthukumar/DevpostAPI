@@ -193,8 +193,7 @@ def get_info_from_user_photos(soup):
         else:
             profile_url = 'https://devpost.com/software/ghs-global-healthcare-system'
 
-        user = {"name": s["alt"], "username": urllib.parse.urlparse(profile_url).path[1:], "imageUrl": s["src"],
-                "profileUrl": profile_url}
+        user = get_profile(urllib.parse.urlparse(profile_url).path[1:])
 
         users.append(user)
     return users
@@ -271,7 +270,7 @@ if __name__ == "__main__":
     # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/"))
     # print(get_hackathon_projects("https://hack-the-valley-v.devpost.com/", None, None))
     # print(get_profile_projects('https://devpost.com/shutong5s'))
-    # pprint.pprint(get_project_info('https://devpost.com/software/shopadvisr'))
+    pprint.pprint(get_project_info('https://devpost.com/software/shopadvisr'))
     # print(get_profile("pinosaur"))
-    print(get_hackathon_info("https://hack-the-valley-v.devpost.com/?ref_content=default&ref_feature=challenge&ref_medium=portfolio"))
+    #print(get_hackathon_info("https://hack-the-valley-v.devpost.com/?ref_content=default&ref_feature=challenge&ref_medium=portfolio"))
     # print(get_hackathon_categories("https://hack-the-valley-v.devpost.com/"))
