@@ -76,4 +76,5 @@ type Project {
     hackathons : [Awards!]!
     details: String!
     builtWith: [String!]!
+    externalLinks: [String!]!
 }
