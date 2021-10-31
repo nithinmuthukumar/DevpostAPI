@@ -55,6 +55,7 @@ type Member {
     location: String!
     externalLinks: [String!]!
     stats: MemberStats!
+    imageUrl: String!
 }
 type Awards {
     name: String!
